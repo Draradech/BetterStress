@@ -23,19 +23,22 @@ namespace BetterStress
         public static ConfigEntry<Color> colNeutral;
         public static ConfigEntry<Color> colCompression;
         public static ConfigEntry<Color> colTension;
+        public static ConfigEntry<float> stressSmoothing;
         public static ConfigEntry<BepInEx.Configuration.KeyboardShortcut> maxStressHotkey;
         
         private static BepInEx.Logging.ManualLogSource staticLogger;
         private static Dictionary<Material, Color> originalColor = new Dictionary<Material, Color>();
         private static Dictionary<PolyPhysics.Edge, float> maxStress = new Dictionary<PolyPhysics.Edge, float>();
+        private static Dictionary<PolyPhysics.Edge, float> curStress = new Dictionary<PolyPhysics.Edge, float>();
         private static bool maxStressSelected = false;
         
         void Awake()
         {
-            modEnabled      = Config.Bind("", "Mod Enabled",                        true,                                                   new ConfigDescription("", null, new ConfigurationManagerAttributes{Order = 5}));
-            colNeutral      = Config.Bind("", "Neutral Stress Color",               new Color(0.0f, 0.0f, 0.0f),                            new ConfigDescription("", null, new ConfigurationManagerAttributes{Order = 4}));
-            colCompression  = Config.Bind("", "Max Compression Color",              new Color(1.0f, 0.0f, 0.0f),                            new ConfigDescription("", null, new ConfigurationManagerAttributes{Order = 3}));
-            colTension      = Config.Bind("", "Max Tension Color",                  new Color(0.0f, 1.0f, 1.0f),                            new ConfigDescription("", null, new ConfigurationManagerAttributes{Order = 2}));
+            modEnabled      = Config.Bind("", "Mod Enabled",                        true,                                                   new ConfigDescription("", null, new ConfigurationManagerAttributes{Order = 6}));
+            colNeutral      = Config.Bind("", "Neutral Stress Color",               new Color(0.0f, 0.0f, 0.0f),                            new ConfigDescription("", null, new ConfigurationManagerAttributes{Order = 5}));
+            colCompression  = Config.Bind("", "Max Compression Color",              new Color(1.0f, 0.0f, 0.0f),                            new ConfigDescription("", null, new ConfigurationManagerAttributes{Order = 4}));
+            colTension      = Config.Bind("", "Max Tension Color",                  new Color(0.0f, 1.0f, 1.0f),                            new ConfigDescription("", null, new ConfigurationManagerAttributes{Order = 3}));
+            stressSmoothing = Config.Bind("", "Current stress smoothing",           0.8f,                                                   new ConfigDescription("", null, new ConfigurationManagerAttributes{Order = 2}));
             maxStressHotkey = Config.Bind("", "Toggle max stress / current stress", new BepInEx.Configuration.KeyboardShortcut(KeyCode.X),  new ConfigDescription("", null, new ConfigurationManagerAttributes{Order = 1}));
             
             modEnabled.SettingChanged += onEnableDisable;
@@ -66,6 +69,15 @@ namespace BetterStress
             SetOriginalColor();
         }
         
+        public override string getSettings()
+        {
+            return "";
+        }
+        
+        public override void setSettings(string settings)
+        {
+        }
+        
         [HarmonyPatch(typeof(BridgeEdges), "SetStressColor")]
         static class Patch_BridgeEdges_SetStressColor
         {
@@ -79,16 +91,14 @@ namespace BetterStress
                     maxStressSelected = !maxStressSelected;
                 }
                 
-                var smoothedStressSignedProperty = typeof(PolyPhysics.Edge).GetProperty("smoothedStressSigned", BindingFlags.NonPublic | BindingFlags.Instance);
                 var bridgeLinkMeshRendererField = typeof(BridgeLink).GetField("m_MeshRenderer", BindingFlags.NonPublic | BindingFlags.Instance);
                 var hydVisMeshRenderersField = typeof(BridgeHydraulicEdgeVisualization).GetField("m_MeshRenderers", BindingFlags.NonPublic | BindingFlags.Instance);
                 foreach (BridgeEdge edge in BridgeEdges.m_Edges)
                 {
                     if(edge.m_PhysicsEdge != null)
                     {
-                        float smoothedStress = (float)smoothedStressSignedProperty.GetValue(edge.m_PhysicsEdge);
-                        float selectedStress = maxStressSelected ? maxStress[edge.m_PhysicsEdge] : smoothedStress;
-                        Color stressCol = selectedStress > 0.0 ? Color.Lerp(colNeutral.Value, colCompression.Value, selectedStress) : Color.Lerp(colNeutral.Value, colTension.Value, -selectedStress);
+                        float selectedStress = maxStressSelected ? maxStress[edge.m_PhysicsEdge] : curStress[edge.m_PhysicsEdge];
+                        Color stressCol = (selectedStress > 0.0) ? Color.Lerp(colNeutral.Value, colCompression.Value, selectedStress) : Color.Lerp(colNeutral.Value, colTension.Value, -selectedStress);
                         if ((edge.m_Material.m_MaterialType == BridgeMaterialType.ROPE || edge.m_Material.m_MaterialType == BridgeMaterialType.CABLE) && BridgeRopes.m_BridgeRopes.Count > 0)
                         {
                             foreach (BridgeRope bridgeRope in BridgeRopes.m_BridgeRopes)
@@ -249,6 +259,7 @@ namespace BetterStress
             {
                 originalColor.Clear();
                 maxStress.Clear();
+                curStress.Clear();
             }
         }
         
@@ -273,6 +284,11 @@ namespace BetterStress
                         {
                             maxStress[edge.m_PhysicsEdge] = signedStress;
                         }
+                        if (!curStress.ContainsKey(edge.m_PhysicsEdge))
+                        {
+                            curStress[edge.m_PhysicsEdge] = signedStress;
+                        }
+                        curStress[edge.m_PhysicsEdge] = stressSmoothing.Value * curStress[edge.m_PhysicsEdge] + (1.0f - stressSmoothing.Value) * signedStress;
                     }
                 }
             }
