@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+    </PropertyGroup>
+    <ItemGroup>
+        <Reference Include="UnityEngine">
+            <HintPath>libraries/UnityEngine.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.CoreModule">
+            <HintPath>libraries/UnityEngine.CoreModule.dll</HintPath>
+        </Reference>
+        <Reference Include="Assembly-CSharp">
+            <HintPath>libraries/Assembly-CSharp.dll</HintPath>
+        </Reference>
+        <Reference Include="BepInEx">
+            <HintPath>libraries/BepInEx.dll</HintPath>
+        </Reference>
+        <Reference Include="HarmonyX">
+            <HintPath>libraries/0Harmony.dll</HintPath>
+        </Reference>
+        <Reference Include="BepInEx.Harmony">
+            <HintPath>libraries/BepInEx.Harmony.dll</HintPath>
+        </Reference>
+        <Reference Include="PolyTechFramework">
+            <HintPath>libraries/PolyTechFramework.dll</HintPath>
+        </Reference>
+        <Reference Include="ConfigurationManager">
+            <HintPath>libraries/ConfigurationManager.dll</HintPath>
+        </Reference>
+   </ItemGroup>
+</Project>
