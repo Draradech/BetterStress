@@ -17,12 +17,13 @@ namespace BetterStress
     {
         new public const String PluginGuid = "draradech.pb2plugins.BetterStress";
         new public const String PluginName = "Better Stress";
-        new public const String PluginVersion = "0.9.0";
+        new public const String PluginVersion = "0.9.1";
         
         public static ConfigEntry<bool> modEnabled;
-        public static ConfigEntry<Color> colNeutral;
-        public static ConfigEntry<Color> colCompression;
-        public static ConfigEntry<Color> colTension;
+        public static ConfigEntry<Vector3> colCompressionMin;
+        public static ConfigEntry<Vector3> colCompressionMax;
+        public static ConfigEntry<Vector3> colTensionMin;
+        public static ConfigEntry<Vector3> colTensionMax;
         public static ConfigEntry<float> stressSmoothing;
         public static ConfigEntry<BepInEx.Configuration.KeyboardShortcut> maxStressHotkey;
         
@@ -34,12 +35,13 @@ namespace BetterStress
         
         void Awake()
         {
-            modEnabled      = Config.Bind("", "Mod Enabled",                        true,                                                   new ConfigDescription("", null, new ConfigurationManagerAttributes{Order = 6}));
-            colNeutral      = Config.Bind("", "Neutral Stress Color",               new Color(0.0f, 0.0f, 0.0f),                            new ConfigDescription("", null, new ConfigurationManagerAttributes{Order = 5}));
-            colCompression  = Config.Bind("", "Max Compression Color",              new Color(1.0f, 0.0f, 0.0f),                            new ConfigDescription("", null, new ConfigurationManagerAttributes{Order = 4}));
-            colTension      = Config.Bind("", "Max Tension Color",                  new Color(0.0f, 1.0f, 1.0f),                            new ConfigDescription("", null, new ConfigurationManagerAttributes{Order = 3}));
-            stressSmoothing = Config.Bind("", "Current stress smoothing",           0.8f,                                                   new ConfigDescription("", null, new ConfigurationManagerAttributes{Order = 2}));
-            maxStressHotkey = Config.Bind("", "Toggle max stress / current stress", new BepInEx.Configuration.KeyboardShortcut(KeyCode.X),  new ConfigDescription("", null, new ConfigurationManagerAttributes{Order = 1}));
+            modEnabled        = Config.Bind("", "Mod Enabled",                        true,                                                   new ConfigDescription("", null, new ConfigurationManagerAttributes{Order = 7}));
+            stressSmoothing   = Config.Bind("", "Current stress smoothing",           0.8f,                                                   new ConfigDescription("", null, new ConfigurationManagerAttributes{Order = 6}));
+            maxStressHotkey   = Config.Bind("", "Toggle max stress / current stress", new BepInEx.Configuration.KeyboardShortcut(KeyCode.X),  new ConfigDescription("", null, new ConfigurationManagerAttributes{Order = 5}));
+            colCompressionMax = Config.Bind("", "Compression Max (HSV)",              new Vector3(0.0f, 1.0f, 1.0f),                          new ConfigDescription("", null, new ConfigurationManagerAttributes{Order = 4}));
+            colCompressionMin = Config.Bind("", "Compression Min (HSV)",              new Vector3(0.0f, 1.0f, 0.0f),                          new ConfigDescription("", null, new ConfigurationManagerAttributes{Order = 3}));
+            colTensionMin     = Config.Bind("", "Tension Min (HSV)",                  new Vector3(0.5f, 1.0f, 0.0f),                          new ConfigDescription("", null, new ConfigurationManagerAttributes{Order = 2}));
+            colTensionMax     = Config.Bind("", "Tension Max (HSV)",                  new Vector3(0.5f, 1.0f, 1.0f),                          new ConfigDescription("", null, new ConfigurationManagerAttributes{Order = 1}));
             
             modEnabled.SettingChanged += onEnableDisable;
             
@@ -57,16 +59,19 @@ namespace BetterStress
         {
             if (modEnabled.Value) enableMod();
             else disableMod();
-            this.isEnabled = modEnabled.Value;
         }
         
         public override void enableMod()
         {
+            this.isEnabled = true;
+            modEnabled.Value = true;
         }
         
         public override void disableMod()
         {
             SetOriginalColor();
+            this.isEnabled = false;
+            modEnabled.Value = false;
         }
         
         public override string getSettings()
@@ -97,8 +102,11 @@ namespace BetterStress
                 {
                     if(edge.m_PhysicsEdge != null)
                     {
-                        float selectedStress = maxStressSelected ? maxStress[edge.m_PhysicsEdge] : curStress[edge.m_PhysicsEdge];
-                        Color stressCol = (selectedStress > 0.0) ? Color.Lerp(colNeutral.Value, colCompression.Value, selectedStress) : Color.Lerp(colNeutral.Value, colTension.Value, -selectedStress);
+                        float stress = maxStressSelected ? maxStress[edge.m_PhysicsEdge] : curStress[edge.m_PhysicsEdge];
+                        float h = stress > 0.0 ? Mathf.Lerp(colCompressionMin.Value.x, colCompressionMax.Value.x, stress) : Mathf.Lerp(colTensionMin.Value.x, colTensionMax.Value.x, -stress);
+                        float s = stress > 0.0 ? Mathf.Lerp(colCompressionMin.Value.y, colCompressionMax.Value.y, stress) : Mathf.Lerp(colTensionMin.Value.y, colTensionMax.Value.y, -stress);
+                        float v = stress > 0.0 ? Mathf.Lerp(colCompressionMin.Value.z, colCompressionMax.Value.z, stress) : Mathf.Lerp(colTensionMin.Value.z, colTensionMax.Value.z, -stress);
+                        Color stressCol = Color.HSVToRGB(h, s, v);
                         if ((edge.m_Material.m_MaterialType == BridgeMaterialType.ROPE || edge.m_Material.m_MaterialType == BridgeMaterialType.CABLE) && BridgeRopes.m_BridgeRopes.Count > 0)
                         {
                             foreach (BridgeRope bridgeRope in BridgeRopes.m_BridgeRopes)
