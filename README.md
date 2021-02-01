@@ -1,5 +1,5 @@
 # BetterStress
-PolyBridge Mod customizing the stress visualization.
+PolyBridge 2 Mod customizing the stress visualization.
 
 Different colors for tension and compression.
 
