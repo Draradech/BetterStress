@@ -9,6 +9,9 @@
         <Reference Include="UnityEngine.CoreModule">
             <HintPath>libraries/UnityEngine.CoreModule.dll</HintPath>
         </Reference>
+        <Reference Include="UnityEngine.IMGUIModule">
+            <HintPath>libraries/UnityEngine.IMGUIModule.dll</HintPath>
+        </Reference>
         <Reference Include="Assembly-CSharp">
             <HintPath>libraries/Assembly-CSharp.dll</HintPath>
         </Reference>
