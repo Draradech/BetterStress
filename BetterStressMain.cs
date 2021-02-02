@@ -17,7 +17,7 @@ namespace BetterStress
     {
         new public const String PluginGuid = "draradech.pb2plugins.BetterStress";
         new public const String PluginName = "Better Stress";
-        new public const String PluginVersion = "0.9.2";
+        new public const String PluginVersion = "0.9.3";
         
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<Vector3> colCompressionMin;
@@ -39,10 +39,10 @@ namespace BetterStress
             modEnabled        = Config.Bind("", "Mod Enabled",                        true,                                                   new ConfigDescription("", null, new ConfigurationManagerAttributes{Order = 7}));
             stressSmoothing   = Config.Bind("", "Current stress smoothing",           0.8f,                                                   new ConfigDescription("", null, new ConfigurationManagerAttributes{Order = 6}));
             maxStressHotkey   = Config.Bind("", "Toggle max stress / current stress", new BepInEx.Configuration.KeyboardShortcut(KeyCode.X),  new ConfigDescription("", null, new ConfigurationManagerAttributes{Order = 5}));
-            colCompressionMax = Config.Bind("", "Compression Max",                    new Vector3(0.0f, 1.0f, 1.0f),                          new ConfigDescription("", null, new ConfigurationManagerAttributes{Order = 4, CustomDrawer = HsvDrawer}));
+            colCompressionMax = Config.Bind("", "Compression Max",                    new Vector3(0.0f, 1.0f, 0.8f),                          new ConfigDescription("", null, new ConfigurationManagerAttributes{Order = 4, CustomDrawer = HsvDrawer}));
             colCompressionMin = Config.Bind("", "Compression Min",                    new Vector3(0.0f, 1.0f, 0.0f),                          new ConfigDescription("", null, new ConfigurationManagerAttributes{Order = 3, CustomDrawer = HsvDrawer}));
             colTensionMin     = Config.Bind("", "Tension Min",                        new Vector3(0.5f, 1.0f, 0.0f),                          new ConfigDescription("", null, new ConfigurationManagerAttributes{Order = 2, CustomDrawer = HsvDrawer}));
-            colTensionMax     = Config.Bind("", "Tension Max",                        new Vector3(0.5f, 1.0f, 1.0f),                          new ConfigDescription("", null, new ConfigurationManagerAttributes{Order = 1, CustomDrawer = HsvDrawer}));
+            colTensionMax     = Config.Bind("", "Tension Max",                        new Vector3(0.5f, 1.0f, 0.8f),                          new ConfigDescription("", null, new ConfigurationManagerAttributes{Order = 1, CustomDrawer = HsvDrawer}));
             
             modEnabled.SettingChanged += onEnableDisable;
             
@@ -185,7 +185,7 @@ namespace BetterStress
                                 originalColor[m1] = m1.color;
                             }
                             m1.color = stressCol;
-                            Material m2 = edge.m_SpringCoilVisualization.m_FrontLink.m_MeshRenderer.material;
+                            Material m2 = edge.m_SpringCoilVisualization.m_BackLink.m_MeshRenderer.material;
                             if (!originalColor.ContainsKey(m2))
                             {
                                 originalColor[m2] = m2.color;
@@ -272,7 +272,7 @@ namespace BetterStress
                     {
                         m1.color = originalColor[m1];
                     }
-                    Material m2 = edge.m_SpringCoilVisualization.m_FrontLink.m_MeshRenderer.material;
+                    Material m2 = edge.m_SpringCoilVisualization.m_BackLink.m_MeshRenderer.material;
                     if (originalColor.ContainsKey(m2))
                     {
                         m2.color = originalColor[m2];
