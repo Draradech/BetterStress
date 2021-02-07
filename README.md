@@ -10,6 +10,8 @@ Can toggle between max stress and current stress (default key is 'X' while stres
 
 ![Tension](https://github.com/Draradech/BetterStress/raw/main/docs/Tension.png)
 
+![Exponent](https://github.com/Draradech/BetterStress/raw/main/docs/Exponent.png)
+
 ## Settings
 default color settings
 
