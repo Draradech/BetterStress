@@ -1,11 +1,14 @@
 # BetterStress
 PolyBridge 2 Mod customizing the stress visualization.
 
-Different colors for tension and compression.
+Configurable colors for tension and compression.
 
-Can toggle between max stress and current stress (default key is 'X' while stress view is active).
+Hotkey 'X' toggles between max stress and current stress.
 
-## Images
+Hotkey 'J' cycles through stress exponent (see pictures below)
+
+
+## Pictures
 ![Hydraulic](https://github.com/Draradech/BetterStress/raw/main/docs/Hydraulic.png)
 
 ![Tension](https://github.com/Draradech/BetterStress/raw/main/docs/Tension.png)
