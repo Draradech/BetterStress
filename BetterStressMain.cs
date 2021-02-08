@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using BepInEx;
 using BepInEx.Configuration;
-using BepInEx.Logging;
 using HarmonyLib;
 using PolyTechFramework;
 
@@ -36,6 +35,7 @@ namespace BetterStress
         private static Dictionary<PolyPhysics.Edge, float> curStress = new Dictionary<PolyPhysics.Edge, float>();
         private static bool maxStressSelected = false;
         private static int selectedExponent = 1;
+        private static BridgeEdge newEdge;
         
         void Awake()
         {
@@ -191,7 +191,7 @@ namespace BetterStress
                                 bridgeRope.SetStressColor(0.0f);
                                 foreach (BridgeLink link in bridgeRope.m_Links)
                                 {
-                                    SetColor(((UnityEngine.MeshRenderer)bridgeLinkMeshRendererField.GetValue(link)).material, stressCol);
+                                    SetColor(((MeshRenderer)bridgeLinkMeshRendererField.GetValue(link)).material, stressCol);
                                     
                                 }
                             }
@@ -258,7 +258,7 @@ namespace BetterStress
                         {
                             foreach (BridgeLink link in bridgeRope.m_Links)
                             {
-                                RestoreColor(((UnityEngine.MeshRenderer)bridgeLinkMeshRendererField.GetValue(link)).material);
+                                RestoreColor(((MeshRenderer)bridgeLinkMeshRendererField.GetValue(link)).material);
                             }
                         }
                     }
@@ -298,7 +298,6 @@ namespace BetterStress
             }
         }
         
-        private static BridgeEdge newEdge;
         [HarmonyPatch(typeof(PolyPhysics.BridgeEdgeListener), "CreateBridgeEdgeFromEdge")]
         static class Patch_BridgeEdgeListener_CreateBridgeEdgeFromEdge
         {
@@ -352,7 +351,7 @@ namespace BetterStress
         }
         
         [HarmonyPatch(typeof(PolyPhysics.World), "FixedUpdate_Manual")]
-        static class Patch_PolyPhysicsWorld_FixedUpdate_Manual
+        static class Patch_World_FixedUpdate_Manual
         {
             [HarmonyPostfix]
             static void Postfix()
