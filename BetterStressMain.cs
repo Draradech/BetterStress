@@ -225,20 +225,17 @@ namespace BetterStress
                             }
                         }
                     }
-                    else if (edge.m_Material.m_MaterialType == BridgeMaterialType.SPRING)
+
+                    if (edge.m_Material.m_MaterialType == BridgeMaterialType.SPRING)
                     {
                         BridgeSprings.SetStressColorForEdge(edge, 0.0f);
                         SetColor(edge.m_SpringCoilVisualization.m_FrontLink.m_MeshRenderer.material, stressCol);
                         SetColor(edge.m_SpringCoilVisualization.m_BackLink.m_MeshRenderer.material, stressCol);
                     }
-                    else
+
+                    if (edge.m_Material.m_MaterialType == BridgeMaterialType.REINFORCED_ROAD)
                     {
-                        edge.SetStressColor(0.0f);
-                        SetColor(edge.m_MeshRenderer.material, stressCol);
-                        if (edge.m_Material.m_MaterialType == BridgeMaterialType.REINFORCED_ROAD)
-                        {
-                            SetColor(edge.m_MeshRenderer.materials[1], stressCol);
-                        }
+                        SetColor(edge.m_MeshRenderer.materials[1], stressCol);
                     }
 
                     if (edge.m_HydraulicEdgeVisualization != null)
@@ -249,6 +246,9 @@ namespace BetterStress
                             SetColor(meshRenderer.material, stressCol);
                         }
                     }
+
+                    edge.SetStressColor(0.0f);
+                    SetColor(edge.m_MeshRenderer.material, stressCol);
                 }
             }
         }
@@ -258,6 +258,17 @@ namespace BetterStress
             if (originalColor.ContainsKey(m))
             {
                 m.color = originalColor[m];
+            }
+        }
+
+        [HarmonyPatch(typeof(BridgeRopes), "Add")]
+        static class Patch_BridgeRopes_Add
+        {
+            [HarmonyPrefix]
+            static void Prefix(PolyPhysics.Rope rope)
+            {
+                BridgeEdge edge = rope.userData != null ? (BridgeEdge)rope.userData : (BridgeEdge)rope.edge.userData;
+                RestoreColor(edge.m_MeshRenderer.material);
             }
         }
 
@@ -282,7 +293,7 @@ namespace BetterStress
                 {
                     foreach (BridgeRope bridgeRope in BridgeRopes.m_BridgeRopes)
                     {
-                        if ((UnityEngine.Object) bridgeRope.m_ParentEdge == (UnityEngine.Object) edge)
+                        if ((UnityEngine.Object)bridgeRope.m_ParentEdge == (UnityEngine.Object)edge)
                         {
                             foreach (BridgeLink link in bridgeRope.m_Links)
                             {
@@ -291,18 +302,16 @@ namespace BetterStress
                         }
                     }
                 }
-                else if (edge.m_Material.m_MaterialType == BridgeMaterialType.SPRING)
+
+                if (edge.m_Material.m_MaterialType == BridgeMaterialType.SPRING)
                 {
                     RestoreColor(edge.m_SpringCoilVisualization.m_FrontLink.m_MeshRenderer.material);
                     RestoreColor(edge.m_SpringCoilVisualization.m_BackLink.m_MeshRenderer.material);
                 }
-                else
+
+                if (edge.m_Material.m_MaterialType == BridgeMaterialType.REINFORCED_ROAD)
                 {
-                    RestoreColor(edge.m_MeshRenderer.material);
-                    if (edge.m_Material.m_MaterialType == BridgeMaterialType.REINFORCED_ROAD)
-                    {
-                        RestoreColor(edge.m_MeshRenderer.materials[1]);
-                    }
+                    RestoreColor(edge.m_MeshRenderer.materials[1]);
                 }
 
                 if (edge.m_HydraulicEdgeVisualization != null)
@@ -312,6 +321,8 @@ namespace BetterStress
                         RestoreColor(meshRenderer.material);
                     }
                 }
+
+                RestoreColor(edge.m_MeshRenderer.material);
             }
         }
 
