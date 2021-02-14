@@ -16,9 +16,10 @@ namespace BetterStress
     {
         new public const String PluginGuid = "draradech.pb2plugins.BetterStress";
         new public const String PluginName = "Better Stress";
-        new public const String PluginVersion = "0.9.4";
+        new public const String PluginVersion = "0.9.5";
         
         private static ConfigEntry<bool> modEnabled;
+        private static ConfigEntry<bool> replayStress;
         private static ConfigEntry<Vector3> colCompressionMin;
         private static ConfigEntry<Vector3> colCompressionMax;
         private static ConfigEntry<Vector3> colTensionMin;
@@ -41,7 +42,8 @@ namespace BetterStress
         {
             stressExponent = new ConfigEntry<float>[3];
             
-            modEnabled        = Config.Bind("", "Mod Enabled",                        true,                                                   new ConfigDescription("", null, new ConfigurationManagerAttributes{Order = 11}));
+            modEnabled        = Config.Bind("", "Mod Enabled",                        true,                                                   new ConfigDescription("", null, new ConfigurationManagerAttributes{Order = 12}));
+            replayStress      = Config.Bind("", "Replay records stress view",         false,                                                  new ConfigDescription("", null, new ConfigurationManagerAttributes{Order = 11}));
             stressSmoothing   = Config.Bind("", "Current stress smoothing",           0.8f,                                                   new ConfigDescription("", null, new ConfigurationManagerAttributes{Order = 10}));
             maxStressHotkey   = Config.Bind("", "Toggle max stress / current stress", new BepInEx.Configuration.KeyboardShortcut(KeyCode.X),  new ConfigDescription("", null, new ConfigurationManagerAttributes{Order =  9}));
             stressExponent[0] = Config.Bind("", "Stress exponent 1",                  0.33f,                                                  new ConfigDescription("", null, new ConfigurationManagerAttributes{Order =  8}));
@@ -150,7 +152,23 @@ namespace BetterStress
             }
             m.color = c;
         }
-        
+
+        [HarmonyPatch(typeof(ReplayCamera), "OnPreRender")]
+        static class Patch_ReplayCamera_OnPreRender
+        {
+            [HarmonyPostfix]
+            static void Postfix()
+            {
+                if (!modEnabled.Value) return;
+                if (!replayStress.Value) return;
+
+                if (Profile.m_StressViewEnabled)
+                {
+                    BridgeEdges.SetStressColor();
+                }
+            }
+        }
+
         [HarmonyPatch(typeof(BridgeEdges), "SetStressColor")]
         static class Patch_BridgeEdges_SetStressColor
         {
